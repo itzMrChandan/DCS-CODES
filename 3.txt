@@ -1,0 +1,25 @@
+% ISI with PAM Modulation
+clc; close all; clear all;
+
+N = 10^5; M = 4; L = 4; d = randi([1,M], 1, N);
+
+u = modulate('PAM', M, d);
+figure; stem(real(u)); title('PAM modulated symbols'); xlim([1 20]); ylim([min(real(u)), max(real(u))]);
+
+v = reshape( [u; zeros(L-1, length(u))] , [], 1).';
+figure; stem(real(v)); title('oversampled symbols'); xlim([1 150]); ylim([min(real(v)), max(real(v))]);
+
+[p, ~, filterDelay] = srrcFunction(0.3, L, 8);
+s = conv(v, p, 'full');
+figure; plot(real(s)); title('Pulse shaped symbols'); xlim([1 150]); ylim([min(real(s)), max(real(s))]);
+
+r = add_awgn_noise(s, 10*log10(log2(M)) + 1000, L);
+figure; plot(real(r)); title('received signal'); xlim([1 150]); ylim([min(real(r)), max(real(r))]);
+
+uCap = conv(r, p, 'full');
+figure; plot(real(uCap)); title('signal after matched filter'); xlim([1 150]); ylim([min(real(uCap)), max(real(uCap))]);
+
+vCap = uCap(2*filterDelay + 1 : L : end - 2*filterDelay) / L;
+figure; plot(real(vCap)); title('after sym-rate sampling'); xlim([1 150]); ylim([min(real(vCap)), max(real(vCap))]);
+
+figure; plotEyeDiagram(uCap, L, 3*L, 2*filterDelay, 100); title('Eye Diagram'); xlim([0 3]); ylim([min(real(uCap)), max(real(uCap))]);

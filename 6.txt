@@ -1,0 +1,23 @@
+% SYMBOL TIMING ESTIMATION
+clc; close all; clear all;
+
+M = 4; L = 4; rollOff = 0.5; rcDelay = 10; timeOffset = 1;
+
+htx = rcosdesign(rollOff, 6, L); 
+hrx = conj(fliplr(htx));
+
+data = repmat([0,1], 1, 10); 	
+tx_data = real(pammod(data, M));
+txSequence = filter(htx, 1, upsample(tx_data, L)); 
+rxDelayed = [zeros(1, timeOffset), txSequence(1:end-timeOffset)]; 
+mfOutput = filter(hrx, 1, rxDelayed);
+
+rx_data_w_Delay = downsample(mfOutput, L);
+rx_data_wo_Delay = downsample(mfOutput, L, timeOffset);
+
+
+figure; stem(rx_data_wo_Delay); title('Rx Symbol Sequence (Without Delay)'); xlabel('Symbol Index'); ylabel('Amplitude');
+figure; stem(rx_data_w_Delay); title('Rx Symbol Sequence (With Delay)'); xlabel('Symbol Index'); ylabel('Amplitude');
+
+figure; plot(complex(rx_data_wo_Delay(rcDelay:end)), 'o'); title('Rx Scatterplot (Without Delay)'); xlabel('In-phase (I)'); ylabel('Quadrature (Q)'); grid on;
+figure; plot(complex(rx_data_w_Delay(rcDelay:end)), 'o'); title('Rx Scatterplot (With Delay)'); xlabel('In-phase (I)'); ylabel('Quadrature (Q)'); grid on;

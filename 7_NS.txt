@@ -1,0 +1,19 @@
+% FREQ NON-SELECTIVE FADING CHANNEL SIMULATION
+clc; clear all; close all;
+fs = 1e6; no_of_Samples = 10000; dopplerShift = 100;
+
+txSignal = randn(no_of_Samples,1) + 1j*randn(no_of_Samples,1);
+
+rayleigh_Chn = comm.RayleighChannel( ...
+	'SampleRate', fs, ...
+	'MaximumDopplerShift', dopplerShift, ...
+	'NormalizePathGains', true);
+
+rxSignal = rayleigh_Chn(txSignal);
+
+figure;
+subplot(2,1,1); plot(real(txSignal(1:100)), 'b-o'); hold on; plot(imag(txSignal(1:100)), 'r-x'); title('Transmitted Signal (First 100 Samples)'); xlabel('Sample Index'); ylabel('Amplitude'); legend('Real Part', 'Imaginary Part');
+subplot(2,1,2); plot(real(rxSignal(1:100)), 'b-o'); hold on; plot(imag(rxSignal(1:100)), 'r-x'); title('Received Signal (First 100 Samples)'); xlabel('Sample Index'); ylabel('Amplitude'); legend('Real Part', 'Imaginary Part');
+
+figure; 
+pwelch(txSignal, [], [], [], fs, 'centered'); hold on; pwelch(rxSignal, [], [], [], fs, 'centered'); title('Power Spectral Density (PSD) of Signals'); xlabel('Frequency (Hz)'); ylabel('Power/Frequency (dB/Hz)'); legend('Transmitted Signal', 'Received Signal');

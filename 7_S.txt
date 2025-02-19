@@ -1,0 +1,20 @@
+% FREQ SELECTIVE FADING CHANNEL SIMULATION
+clc; clear all; close all;
+fs = 1e6; no_of_Samples = 10000; dopplerShift = 100; no_of_Paths = 5; maxDelay = 3e-6;
+
+txSignal = [1; zeros(no_of_Samples-1, 1)];
+rayleigh_Chn = comm.RayleighChannel( ...
+    'SampleRate', fs, ...
+    'MaximumDopplerShift', dopplerShift, ...
+    'NormalizePathGains', true, ...
+    'PathDelays', linspace(0, maxDelay, no_of_Paths), ...
+    'AveragePathGains', [-2 -3 -6 -8 -10]);
+rxSignal = rayleigh_Chn(txSignal);
+
+freqResponse = fft(rxSignal, 1024);
+
+timeAxis = (0:no_of_Samples)/fs;
+figure; stem(timeAxis(1:100), 20*log10(abs(rxSignal(1:100)))); title('Impulse Response of Rayleigh Fading Channel'); xlabel('Time (s)'); ylabel('Gain (dB)'); 
+
+freqAxis = [linspace(-fs/2, fs/2, 1024)]/fs;
+figure; plot(freqAxis, 20*log10(abs(fftshift(freqResponse)))); title('Frequency Response of Rayleigh Fading Channel'); xlabel('Frequency (MHz)'); ylabel('Magnitude (dB)'); 

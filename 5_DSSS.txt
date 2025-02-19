@@ -1,0 +1,32 @@
+clear all; clc;
+
+fs = 1000; fc = 100; fp = 4; bit_d = 0.1;
+m = [0 0 1 1 0 0 1 0];
+m(m==0) = -1;
+
+pn_code = 2*randi([0,1], 1, length(m)*fp)-1;
+
+DSSS = reshape(repmat(m, fp, 1), 1, []) .* pn_code;
+
+s = cos(2 * pi * fc * (0 : 1/fs : bit_d));
+BPSK = kron(DSSS, s);
+
+demod = (BPSK .* kron(pn_code, ones(1, length(s)))) .* repmat(s, 1, length(DSSS));
+
+x = length(s) * fp;
+recovered_bits = arrayfun(@(i) sign(sum(demod(((i-1)*x)+1:i*x))), 1:length(m));
+
+time_axis = linspace(0, length(DSSS)/fs, length(DSSS));
+bit_time = linspace(0, length(m)*bit_d, length(m));
+
+figure;
+subplot(4,1,1); plot(bit_time, m); title('Original Message');
+subplot(4,1,2); plot(time_axis, pn_code); title('PN Code');
+subplot(4,1,3); plot(time_axis, DSSS); title('DSSS Signal');
+subplot(4,1,4); plot(bit_time, recovered_bits); title('Recovered Message');
+
+% Frequency Domain Analysis
+f = linspace(-fs/2, fs/2, 1024);
+figure;
+subplot(2,1,1); plot(f, abs(fftshift(fft(DSSS, 1024)))); title('DSSS Spectrum');
+subplot(2,1,2); plot(f, abs(fftshift(fft(BPSK, 1024)))); title('BPSK Spectrum');
